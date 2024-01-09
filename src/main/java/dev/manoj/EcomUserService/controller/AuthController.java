@@ -3,7 +3,9 @@ package dev.manoj.EcomUserService.controller;
 import dev.manoj.EcomUserService.dto.LoginRequestDto;
 import dev.manoj.EcomUserService.dto.SignUpRequestDto;
 import dev.manoj.EcomUserService.dto.UserDto;
+import dev.manoj.EcomUserService.dto.ValidateRequestDto;
 import dev.manoj.EcomUserService.modal.Session;
+import dev.manoj.EcomUserService.modal.SessionStatus;
 import dev.manoj.EcomUserService.modal.User;
 import dev.manoj.EcomUserService.service.AuthService;
 import org.springframework.http.HttpStatus;
@@ -34,6 +36,18 @@ public class AuthController {
         UserDto userDto=    authService.singnUp(request.getEmail(),request.getPassword());
         return new ResponseEntity<>(userDto, HttpStatus.OK);
 
+    }
+
+    @PostMapping("/logout/{id}")
+    public ResponseEntity<Void> logout(@PathVariable("id") Long userId,@RequestHeader("token")String token){
+
+       return authService.logout(token,userId);
+
+    }
+
+    @PostMapping("/validate")
+    public ResponseEntity<SessionStatus> validate(@RequestBody ValidateRequestDto request){
+     return    authService.validate(request.getToken(),request.getUserId());
     }
     @GetMapping("/session")
 

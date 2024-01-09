@@ -2,6 +2,7 @@ package dev.manoj.EcomUserService.service;
 
 import dev.manoj.EcomUserService.dto.UserDto;
 import dev.manoj.EcomUserService.exception.InvalidCredentialException;
+import dev.manoj.EcomUserService.exception.SessionNotValidated;
 import dev.manoj.EcomUserService.exception.UserNotFoundException;
 import dev.manoj.EcomUserService.modal.Session;
 import dev.manoj.EcomUserService.modal.SessionStatus;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.MultiValueMapAdapter;
 
 import javax.crypto.SecretKey;
+import java.rmi.server.ServerNotActiveException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -81,6 +83,27 @@ public class AuthService {
         return new ResponseEntity<>(userDto,headers, HttpStatus.OK);
 
 
+
+    }
+
+    public ResponseEntity<Void> logout(String token,Long userid){
+            Optional<Session>sessionOPtonal=    sessionRepository.findByTokenAndUser_Id(token,userid);
+
+            if(sessionOPtonal.isEmpty()){
+                return null;
+            }
+            Session session=sessionOPtonal.get();
+            session.setSessionStatus(SessionStatus.INACTIVE);
+            sessionRepository.save(session);
+
+            return ResponseEntity.ok().build();
+    }
+    public ResponseEntity<SessionStatus>validate(String token,Long userId)  {
+        Optional<Session>sesionOptional=sessionRepository.findByTokenAndUser_Id(token,userId);
+        if(sesionOptional.isEmpty() || sesionOptional.get().getSessionStatus().equals(SessionStatus.INACTIVE)){
+            throw  new SessionNotValidated("Not valiadted");
+        }
+        return new ResponseEntity<>(SessionStatus.ACTIVE,HttpStatus.OK);
 
     }
 
