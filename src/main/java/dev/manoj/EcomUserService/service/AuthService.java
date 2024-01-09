@@ -51,6 +51,18 @@ public class AuthService {
         if(!bCryptPasswordEncoder.matches(password,user.getPassword())){
             throw new InvalidCredentialException("Credentails are wroung");
         }
+        //removing previous sessions or just make sessionstatus as inactive
+      Optional< List<Session>>allSessions= sessionRepository.findByUser_Id(user.getId());
+            List<Session>allUserSesions=allSessions.get();
+        if(!allSessions.isEmpty()){
+            for(Session session:allUserSesions){
+                if(session.getSessionStatus().equals(SessionStatus.ACTIVE)){
+                    session.setSessionStatus(SessionStatus.INACTIVE);
+                }
+            }
+            sessionRepository.saveAll(allUserSesions);
+
+        }
 
         Map<String ,Object> jsonForJwt=new HashMap<>();
 
