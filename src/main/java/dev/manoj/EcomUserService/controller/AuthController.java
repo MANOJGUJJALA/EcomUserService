@@ -8,6 +8,8 @@ import dev.manoj.EcomUserService.modal.Session;
 import dev.manoj.EcomUserService.modal.SessionStatus;
 import dev.manoj.EcomUserService.modal.User;
 import dev.manoj.EcomUserService.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +20,10 @@ import java.util.List;
 @RequestMapping("/auth")
 public class AuthController {
 
+    @Autowired
     private AuthService authService;
 
-    public AuthController(AuthService authService) {
-        this.authService = authService;
-    }
+
 
     @PostMapping("/login")
     public ResponseEntity<UserDto> login(@RequestBody LoginRequestDto request){
@@ -31,6 +32,7 @@ public class AuthController {
 //    return new ResponseEntity<>(userDto,HttpStatus.OK);
     }
     @PostMapping("/signup")
+
     public ResponseEntity<UserDto>signUP(@RequestBody SignUpRequestDto request){
         System.out.println("hi hello");
         UserDto userDto=    authService.singnUp(request.getEmail(),request.getPassword());

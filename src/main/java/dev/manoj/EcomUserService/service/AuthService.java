@@ -1,5 +1,9 @@
 package dev.manoj.EcomUserService.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.manoj.EcomUserService.config.KafkaProducerConfig;
+import dev.manoj.EcomUserService.dto.SendEmailDto;
 import dev.manoj.EcomUserService.dto.UserDto;
 import dev.manoj.EcomUserService.exception.InvalidCredentialException;
 import dev.manoj.EcomUserService.exception.SessionNotValidated;
@@ -32,11 +36,19 @@ public class AuthService {
 
         private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+        private KafkaProducerConfig kafkaProducerConfig;
+        private ObjectMapper objectmapper;
 
-    public AuthService(UserRepository userRepository, SessionRepository sessionRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
+
+    public AuthService(UserRepository userRepository, SessionRepository sessionRepository,
+                       BCryptPasswordEncoder bCryptPasswordEncoder,
+                       KafkaProducerConfig kafkaProducerConfig,
+                       ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.sessionRepository = sessionRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+        this.kafkaProducerConfig=kafkaProducerConfig;
+        this.objectmapper=objectMapper;
     }
 
     public ResponseEntity<UserDto> login(String email,String password){
@@ -118,13 +130,29 @@ public class AuthService {
 
     }
 
-    public UserDto singnUp(String email, String password){
+    public UserDto singnUp(String email, String password) {
 
         User user=new User();
         user.setEmail(email);
         user.setPassword(bCryptPasswordEncoder.encode(password));
 
         User userRepo=userRepository.save(user);
+
+        try{
+
+            SendEmailDto sendEmailDto=new SendEmailDto();
+            sendEmailDto.setTo("kajal@gmail.com");
+            sendEmailDto.setFrom("balu@gmail.com");
+            sendEmailDto.setSubject("Signup Succefull");
+            sendEmailDto.setBody("Welcome to chamet");
+
+            kafkaProducerConfig.sendMessage("signUp", objectmapper.writeValueAsString(sendEmailDto));
+
+        }
+        catch (Exception e){
+            System.out.println("Something went wroung");
+        }
+
 
         return UserDto.from(userRepo);
 
